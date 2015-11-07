@@ -41,6 +41,10 @@
 
 % Import the grammar.
 :- consult('312-pess-grammar.pl').
+% Import the Wordnet Database
+:- consult('wn_s.pl').
+% Import the Morphological Analysis Tool
+:- consult('pronto_morph_engine.pl').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Interpreter loop                                             %%
