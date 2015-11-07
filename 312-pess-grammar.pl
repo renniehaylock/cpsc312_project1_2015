@@ -584,6 +584,52 @@ write_sentence([]).
 write_sentence([Word|Words]) :- write(Word), tab(1), write_sentence(Words).
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Adding non-existing local DB words from Wordnet DB  %%
+%% to local DB.                                        %% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% stem_word(X) stems a word to its other forms 
+%% ie stem_word(harder) uses the Morphological analysis tool to produce a list of stems 
+%% [harder,harde,-er,hard,-er]
+stem_word(X) :- morph_atoms_bag(X, B), 
+                flatten(B, Y), 
+                write(Y), 
+                check_item(Y), !.
+
+
+%% check_item([]) recurses over the list of stems from stem_word(X)
+check_item([]).
+check_item([Head|Tail]) :-  check_wordnet_dictionary(Head),
+                            check_item(Tail).
+
+%% check_wordnet_dictionary(X) Checks to see if the word is already in our local DB,
+%% if not it checks to see if the word exists in the external Wordnet DB because
+%% only core words are contained in their DB.
+check_wordnet_dictionary(X) :- check_not_in_local_dictionary(X),
+          not(s(_, _, X, Type, _, _)).
+
+check_wordnet_dictionary(X) :-  check_not_in_local_dictionary(X),
+            s(ID, W_num, X, Type, Sense_num, Tag_count), !,
+            write(Type),
+            insertWord(X, Type). 
+
+%% check to make sure word is not in local DB.
+check_not_in_local_dictionary(X) :- not(n(X)), 
+                                    not(v(X)), 
+                                    not(adj(X)), 
+                                    not(adv(X)), !.
+
+%% Insert non-existing word into local DB.
+%% There are two versions of adjectives that Wordnet returns
+%% One is regular adjective "a" the other is adjective satellite s.
+insertWord(X, n) :- assert(n(X)).
+insertWord(X, v) :- assert(v(X)).
+insertWord(X, r) :- assert(adv(X)).
+insertWord(X, s) :- assert(adj(X)).
+insertWord(X, a) :- assert(adj(X)).
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Vocabulary for the PESS parser                               %%
