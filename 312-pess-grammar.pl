@@ -352,22 +352,26 @@ det_opt --> [an].
 
 % Nouns become is_a attributes.
 n([]) --> [it].                           % "it" is ignored
-n([attr(is_a,X,[])]) --> [X], { n(X) }.   % Anything listed below.
+%%n([attr(is_a,X,[])]) --> [X], { n(X) }.   % Anything listed below.
+n([attr(is_a,X,[])]) --> [X], { stem_word(X) }.
 n([attr(is_a,Name,[])]) --> lit(n, Name). % Any literal tagged as 'n'
 
 
 % Adverbs are either those provided below or literals.
-adv([attr(is_how,X,[])]) --> [X], { adv(X) }.
+%adv([attr(is_how,X,[])]) --> [X], { adv(X) }.
+adv([attr(is_how,X,[])]) --> [X], { stem_word(X) }.
 adv([attr(is_how,Name,[])]) --> lit(adv, Name).
 
 % Adjectives are either those provided below or literals.
-adj([attr(is_like,X,[])]) --> [X], { adj(X) }.
+%adj([attr(is_like,X,[])]) --> [X], { adj(X) }.
+adj([attr(is_like,X,[])]) --> [X], { stem_word(X) }.
 adj([attr(is_like,Name,[])]) --> lit(adj, Name).
 
 
 % "Doing" verbs (as opposed to "has" and "is".
 % Either provided below or literals.
-vdoes([attr(does,X,[])]) --> [X], { v(X) }.
+%vdoes([attr(does,X,[])]) --> [X], { v(X) }.
+vdoes([attr(does,X,[])]) --> [X], { stem_word(X) }.
 vdoes([attr(does,Name,[])]) --> lit(v, Name).
 
 % "Having" verbs are "has" or "have" and "contain" or "contains".
