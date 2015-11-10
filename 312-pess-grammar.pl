@@ -2,7 +2,7 @@
 %% Author: Steve Wolfman
 %% Date: 2005/02/02
 %% Collaborators: based partially on work by David Lowe
-%% Sources: based partially on code from Amzi!, Inc.
+%% Sources: based partially on code from Amzi!, Inc. 
 %%
 %% Description:
 %% This file contains the natural language machinery for the 312
@@ -12,15 +12,15 @@
 %% You'll probably want to use "try_parse/0" as the entry point.
 %%
 %% Approximately speaking, rules are introduced by "rule:" and end
-%% with a period.  A rule can be a sentence or a condition like
+%% with a period.  A rule can be a sentence or a condition like 
 %% if <sentence> then <result>.  Sentences have a noun phrase for a
 %% subject and a verb phrase.  The noun phrase can be "it" or a noun
 %% with optional descriptive adjectives.  The verb phrase can be "is"
 %% or "are", in which case it is followed by a noun phrase or an
 %% adjective; "has", "have", "contain", or "contains", in which case
-%% it is followed by any series of noun phrases joined together by
+%% it is followed by any series of noun phrases joined together by 
 %% "and"; or any other verb, in which case, it is also followed by
-%% a conjunction of noun phrases.  Words themselves are defined
+%% a conjunction of noun phrases.  Words themselves are defined 
 %% (with their part of speech) below.  Words can also be "defined"
 %% in place by surrounding them with " characters and tagging them
 %% with a type.  For example: it is a "adj:rowdy" "n:game".  This
@@ -30,7 +30,7 @@
 %% be one of "n", "adj", "adv", and "v" for noun, adjective, adverb,
 %% and verb, respectively.
 %%
-%% This file contains a small amount of code based on Amzi's
+%% This file contains a small amount of code based on Amzi's 
 %% various parsers.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -38,16 +38,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-% This file is broken into sections using banners like the
+% This file is broken into sections using banners like the 
 % "Introduction" banner that begins this section. The key sections are:
-% - Reading input into term lists: read_sentence/1 reads
-%   a sentence (up to a period) from standard input into
-%   a list of words represented as atoms.
-% - Grammar: rule/3 (gen'd from the DCG rule/1) parses natural
-%   language into a PESS rule structure; try_parse/0 prompts you
-%   for a sentence and then tries to parse and gloss it.
-% - Glossing: plain_gloss/2 translates a PESS rule structure back
-%   into natural language ("glosses" the rule)
+% - Reading input into term lists: read_sentence/1 reads 
+%   a sentence (up to a period) from standard input into 
+%   a list of words represented as atoms.  
+% - Grammar: rule/3 (gen'd from the DCG rule/1) parses natural 
+%   language into a PESS rule structure; try_parse/0 prompts you 
+%   for a sentence and then tries to parse and gloss it.  
+% - Glossing: plain_gloss/2 translates a PESS rule structure back 
+%   into natural language ("glosses" the rule) 
 % - Vocabulary: defines gobs of bird-related vocabulary
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,7 +60,7 @@
 
 % Read a sentence (rule).
 read_sentence(_) :- peek_char(Ch), Ch = 'end_of_file', !, fail.
-read_sentence(S) :- read_sent_helper(S). % S is the final list of words
+read_sentence(S) :- read_sent_helper(S).
 
 % Read a sentence as individual words.
 read_sent_helper([]) :- peek_char(Ch),       % Stop at end of file.
@@ -68,16 +68,16 @@ read_sent_helper([]) :- peek_char(Ch),       % Stop at end of file.
 read_sent_helper([]) :- peek_char(Ch),       % Stop at a period.
         Ch = '.', !, get_char(Ch).
 read_sent_helper(Words) :- peek_char(Ch),    % Eat whitespace
-        char_type(Ch, space), !, get_char(Ch),
+        char_type(Ch, space), !, get_char(Ch), 
         read_sent_helper(Words).
 read_sent_helper([Word|Words]) :-            % Read quoted words.
         peek_char(Ch), Ch = '"', !,
-        read_word_to(ChWord),
+        read_word_to(ChWord), 
         atom_chars(Word, ChWord),
         read_sent_helper(Words).
 read_sent_helper([Word|Words]) :-            % Read unquoted words.
-        read_word(ChWord),
-        atom_chars(Word, ChWord),
+        read_word(ChWord), 
+        atom_chars(Word, ChWord), 
         read_sent_helper(Words).
 
 % Read a word taking the next character read as a delimiter.
@@ -89,7 +89,7 @@ read_word_to([C|Cs]) :- get_char(C), read_word_to(C,Cs).
 read_word_to(Stop, [Stop]) :- peek_char(Stop), !, get_char(Stop).
 read_word_to(Stop, [C|Cs]) :- get_char(C), read_word_to(Stop, Cs).
 
-% Read a word delimited by whitespace or a period (which ends the
+% Read a word delimited by whitespace or a period (which ends the 
 % sentence).
 read_word([]) :- peek_char(Ch), char_type(Ch, space), !.
 read_word([]) :- peek_char(Ch), Ch = '.', !.
@@ -121,11 +121,11 @@ read_word([Ch|Chs]) :- get_char(Ch), read_word(Chs).
 % (instance of attr/3) while Body is a (possibly empty) list of
 % goals. A rule "rule(Head, Body)" means something like "if Body then
 % Head". Goals, AKA attributes, have the form attr(Type, Value,
-% SubAttributes). Type is one of:
-% - is_a (indicating a noun/is-a relationship)
-% - has_a (indicating a noun/containment/possession relationship)
-% - is_like (indicating an adjective/descriptive relationship)
-% - is_how (indicating an adverb/descriptive relationship)
+% SubAttributes). Type is one of: 
+% - is_a (indicating a noun/is-a relationship) 
+% - has_a (indicating a noun/containment/possession relationship) 
+% - is_like (indicating an adjective/descriptive relationship) 
+% - is_how (indicating an adverb/descriptive relationship) 
 %
 % Value may be anything. SubAttributes is a (possibly empty) list of
 % "attached" attributes -- that is, further attributes describing this
@@ -139,7 +139,7 @@ read_word([Ch|Chs]) :- get_char(Ch), read_word(Chs).
 %   attr(does, tear,                % do what? tear
 %     [attr(is_how, slowly, []),    % tear how? slowly
 %      attr(is_a, paper, [])])])    % tear what? paper
-%
+%      
 % Note that glossing this (see the plain_gloss predicate) will
 % result in an equivalent "canonical" form:
 % it has very sharp claws that slowly tear paper
@@ -157,39 +157,25 @@ try_parse :- try_parse(P),
         write('Understood: '), write_sentence(Text), nl.
 
 % Debugging predicate for quick test parsing of a rule.
-try_parse(P) :- read_sentence(Sent), rule(P, Sent, []). % Sent is list of words
+try_parse(P) :- read_sentence(Sent), rule(P, Sent, []).
 
 %% A sample parsed sentence for testing.  Should mean:
-%% It very slowly and carefully eats languidly flying very very
+%% It very slowly and carefully eats languidly flying very very 
 %% small insects and brown worms.
 big_test_term(X) :- X =
-[attr(does, eat,
-      [attr(is_how, slowly, [attr(is_how, very, [])]),
-       attr(is_how, carefully, []),
-       attr(is_a, insect, [attr(is_like, flying,
-                                [attr(is_how, languidly, [])]),
-                           attr(is_like, small,
-                                [attr(is_how, very,
-                                      [attr(is_how, very, [])])])]),
+[attr(does, eat, 
+      [attr(is_how, slowly, [attr(is_how, very, [])]), 
+       attr(is_how, carefully, []), 
+       attr(is_a, insect, [attr(is_like, flying, 
+                                [attr(is_how, languidly, [])]), 
+                           attr(is_like, small, 
+                                [attr(is_how, very, 
+                                      [attr(is_how, very, [])])])]), 
        attr(is_a, worm, [attr(is_like, brown, [])])])].
 
 
 
 %%%%%%%%%%%%%%%%%%% grammar for parsing rules %%%%%%%%%%%%%%%%%%%
-
-% Words can be..
-t%% rule(Words) -->                              % if S+ then S+
-%%         [if], sentence_conj_plus(Body),      % conjunctive bodies OK
-%%         [then], sentence_conj_plus(Head),    % conjunctive heads..
-%%         { build_rules(Body, Head, Rules) }.  % broken into separate rules
-%% rule(Words) -->                              % S if S+
-%%         sentence(Head), [if],
-%%         sentence_conj_plus(Body),
-%%         { build_rules(Body, Head, Rules) }.
-
-%% rule(Words) -->
-%%         sentence(Head),                      % S (only)
-%%         { build_rules([], Head, Rules) }.    % That's a fact! No body.
 
 % Rules can be..
 rule(Rules) -->                              % if S+ then S+
@@ -197,7 +183,7 @@ rule(Rules) -->                              % if S+ then S+
         [then], sentence_conj_plus(Head),    % conjunctive heads..
         { build_rules(Body, Head, Rules) }.  % broken into separate rules
 rule(Rules) -->                              % S if S+
-        sentence(Head), [if],
+        sentence(Head), [if],                
         sentence_conj_plus(Body),
         { build_rules(Body, Head, Rules) }.
 rule(Rules) -->
@@ -222,18 +208,18 @@ sentence(Attrs) -->
 % noun phrase then verb phrase.
 % Sentences like: "its talons are sharp" are converted to
 % a canonical form with "it" as the subject:
-% "it has talons that are sharp".
+% "it has talons that are sharp". 
 sentence(Attrs) -->
         np([NPT|NPTs]), vp(VPTerms),
-        { convert_to_has_a([NPT|NPTs],
+        { convert_to_has_a([NPT|NPTs], 
                            NPTermsHas),   % Convert to canonical form.
-          build_prepend_attrs(NPTermsHas,
-                              VPTerms,
+          build_prepend_attrs(NPTermsHas, 
+                              VPTerms, 
                               Attrs) }.
 
 % Verb phrases..
 vp(VPTerms) -->                 % It has or it contains
-        vhas,
+        vhas,                   
         np_conj(NPTerms),       % The noun should be has_a, not is_a
         { convert_to_has_a(NPTerms, VPTerms) }.
 
@@ -246,7 +232,7 @@ vp(VPTerms) -->
         np_conj_plus(VPTerms).
 
 vp(VPTerms) -->                 % It advs verb nouns
-    adv_conj(AVTerms),          % E.g., It slowly eats worms.
+    adv_conj(AVTerms),          % E.g., It slowly eats worms. 
     vdoes(VTerms),              % All the attached attributes just
     np_conj(NPTerms),           % get thrown together on the verb.
     { append(AVTerms, NPTerms, ModTerms),
@@ -295,7 +281,7 @@ adv_conj([]) --> [].
 
 % One or more adverbs strung together.
 adv_plus(AVTerms) -->
-    int_adv_plus(AVList),                % List of raw attributes,
+    int_adv_plus(AVList),                % List of raw attributes, 
                                          % in forward order.
     { build_up_advs(AVList, AVTerms) }.  % Build them up in reverse order.
                                          % This nests them w/last adverb
@@ -309,7 +295,7 @@ adv_star([]) --> [].
 % modify each other) to be converted into nested (attached) attributes
 % at a later pass.
 % It's tempting to just have adv_plus and try something like:
-% adv_plus(Terms), adv(LastTerms),
+% adv_plus(Terms), adv(LastTerms), 
 % { build_prepend_attrs(Terms, LastTerm, ResultTerms) }
 % However, this is left recursive and will run forever.
 int_adv_plus(AVPTerms) -->
@@ -322,9 +308,9 @@ int_adv_plus(AVPTerms) -->
 
 % Noun phrase is determiner (or "its") + adjectives + noun.
 % Produces an is_a with attached attributes.
-np(NPTerms) -->
-        det_opt,
-        adjp_star(APTerms),
+np(NPTerms) --> 
+        det_opt, 
+        adjp_star(APTerms), 
         n(NTerms),
         { build_prepend_attrs(NTerms, APTerms, NPTerms) }.
 
@@ -334,7 +320,7 @@ adjp_star(APTerms) -->
         adjp(FstAPTerms),
         adjp_star(RestAPTerms),
         { append(FstAPTerms, RestAPTerms, APTerms) }.
-adjp_star([]) --> [].
+adjp_star([]) --> []. 
 
 % An "adjective phrase", which may include adverbs.
 adjp(APTerms) -->
@@ -353,27 +339,21 @@ det_opt --> [an].
 % Nouns become is_a attributes.
 n([]) --> [it].                           % "it" is ignored
 n([attr(is_a,X,[])]) --> [X], { n(X) }.   % Anything listed below.
-n([attr(is_a,X,[])]) --> [X], { stem_word(X) }. % Cannot find word, stem and add
 n([attr(is_a,Name,[])]) --> lit(n, Name). % Any literal tagged as 'n'
 
 
 % Adverbs are either those provided below or literals.
-adv([]) --> [an].                           % "an" is ignored
 adv([attr(is_how,X,[])]) --> [X], { adv(X) }.
-adv([attr(is_how,X,[])]) --> [X], { stem_word(X) }. % Cannot find word, stem and add
 adv([attr(is_how,Name,[])]) --> lit(adv, Name).
-
 
 % Adjectives are either those provided below or literals.
 adj([attr(is_like,X,[])]) --> [X], { adj(X) }.
-adj([attr(is_like,X,[])]) --> [X], { stem_word(X) }. % Cannot find word, stem and add
 adj([attr(is_like,Name,[])]) --> lit(adj, Name).
 
 
 % "Doing" verbs (as opposed to "has" and "is".
 % Either provided below or literals.
 vdoes([attr(does,X,[])]) --> [X], { v(X) }.
-vdoes([attr(does,X,[])]) --> [X], { stem_word(X) }. % Cannot find word, stem and add
 vdoes([attr(does,Name,[])]) --> lit(v, Name).
 
 % "Having" verbs are "has" or "have" and "contain" or "contains".
@@ -393,7 +373,7 @@ vis --> [is]; [are].
 % speech: n (noun), adj (adjective), adv (adverb), or
 % v (doing verb).
 lit(Type, Name) --> [lit(Type, Name)].
-lit(Type, Name) --> [X],
+lit(Type, Name) --> [X], 
       { atom_chars(X, ['"'|Cs]),      % starts with "
         append(Word, ['"'], Cs),      % ends with "
         append(TypeCs,                % is of the form
@@ -411,7 +391,7 @@ lit(Type, Name) --> [X],
 % argument across multiple rules.  So, p and q :- r becomes p :- r and
 % q :- r.
 build_rules(_, [], []).
-build_rules(Body, [Head|Heads],
+build_rules(Body, [Head|Heads], 
               [rule(Head, Body)|Rules]) :-
         build_rules(Body, Heads, Rules).
 
@@ -434,12 +414,12 @@ build_up_advs([attr(Attr,Val,Subs)|Advs], SoFar, Soln) :-
 
 % build_prepend_attrs(Bases, Attrs, Results) is true if Results
 % is a list of attributes, each of which corresponds to the type
-% and value of an attribute in the list Bases but with its
+% and value of an attribute in the list Bases but with its 
 % attached attributes replaced by Attrs.
 % Note that this effectively means Bases is assumed to have no
 % attached attributes (else, these are thrown away).
 build_prepend_attrs([], _, []).
-build_prepend_attrs([attr(Base,Val,Subs)|Bases], Attrs,
+build_prepend_attrs([attr(Base,Val,Subs)|Bases], Attrs, 
                     [attr(Base,Val,NewSubs)|Results]) :-
         append(Subs,Attrs,NewSubs),
         build_prepend_attrs(Bases, Attrs, Results).
@@ -466,8 +446,43 @@ convert_to_has_a([attr(is_a, Val, Subs)|Attrs],
 
 % "Gloss" (put in natural language) the fact list X into
 % the list of words Y. Note that X is a list, not a single fact!
+
+
+
 plain_gloss(X, Y) :- top_gloss_all_and(X, Y, []), !.
 plain_gloss(X, X).  % Gloss anything unglossable as itself.
+
+% Parses rules to transform them to simplified rules.
+% Takes in a rule for a sentence and builds the solution with split_attrs_to_simplfy
+% split_attrs_to_simplfy splits up each Grammar rule to be restructured by restructure_attr
+% restructure_attr will recursively build the new simplified attr with split_attr_to_simplify based on the transformations given
+simplify_attr(A, SimpleA) :- split_attrs_to_simplfy(A, SimpleA, []), !.
+simplify_attr(A, A).
+
+split_attrs_to_simplfy([]) --> [].
+split_attrs_to_simplfy([Attr]) -->  restructure_attr(Attr).
+split_attrs_to_simplfy([Attr1, Attr2|Attrs]) --> restructure_attr(Attr1),
+            split_attrs_to_simplfy([Attr2|Attrs]).
+
+restructure_attr([]) --> [].
+restructure_attr(rule(Head, [])) --> {split_attrs_to_simplfy([Head], X, [])}, 
+                            [fact(X)].
+restructure_attr(rule(Head, [Body|Rest])) --> [rules(Head, [Body|Rest])].
+restructure_attr(attr(does, Verb, Attrs)) -->  {split_attrs_to_simplfy(Attrs, J, [])}, 
+                                        [attr(does(Verb), J)]. 
+
+restructure_attr(attr(is_how, Adj, [])) --> [(is_how(Adj))], !.
+restructure_attr(attr(is_how, Adj, Attrs)) --> {split_attrs_to_simplfy(Attrs, J, [])}, 
+                                     [(is_how(Adj), J)], !.
+
+restructure_attr(attr(is_a, Nn, [])) --> [attr(is_a(Nn))], !.
+restructure_attr(attr(is_a, Nn, Attrs)) --> {split_attrs_to_simplfy(Attrs, J, [])}, 
+                                        [attr(is_a(Nn), J)], !.
+
+
+restructure_attr(attr(is_like, Adj, [])) --> [is_like(Adj)], !.
+restructure_attr(attr(is_like, Adj, Attrs)) --> {split_attrs_to_simplfy(Attrs, J, [])}, 
+                                        [attr(is_like(Nn), J)], !.
 
 % Gloss the list but put ands in between.  (In between every pair b/c
 % no punctuation!)
@@ -478,28 +493,28 @@ top_gloss_all_and([Attr1,Attr2|Attrs]) -->      % Put ands btw each pair
         top_gloss_all_and([Attr2|Attrs]).
 
 % "Top" glosses are glosses of the outermost attributes:
-% those that control the verb form of the sentence.
+% those that control the verb form of the sentence. 
 top_gloss(rule(Head, [])) -->            % A rule with no body is a fact.
         top_gloss(Head).                 % Leave off the if/then.
-top_gloss(rule(Head, [Body|Rest])) -->
+top_gloss(rule(Head, [Body|Rest])) -->   
         [if],                            % If
         top_gloss_all_and([Body|Rest]),  % body
         [then],                          % then
         top_gloss(Head).                 % head
 top_gloss(attr(does, Verb, Attrs)) -->
-        [it],
+        [it], 
         { split_attrs(Attrs, is_how, Advs, Others) },
-        gloss_all_and(Advs),             % It adverbs
+        gloss_all_and(Advs),             % It adverbs 
         gloss_poss_pl(Verb),             % verb
-        gloss_all_and(Others).           % nouns
+        gloss_all_and(Others).           % nouns 
                                          % (e.g., it slowly eats insects)
 top_gloss(attr(has_a, What, Attrs)) -->
-        [it], [has],
+        [it], [has], 
         { split_attrs(Attrs, is_like, Adjs, Others1) },
         { split_attrs(Others1, is_a, Nouns, Others) },
-        gloss_all(Adjs),                 % It has adjs
-        gloss_poss_pl(What),             % noun
-        gloss_that_are_and(Nouns),       % that are noun
+        gloss_all(Adjs),                 % It has adjs 
+        gloss_poss_pl(What),             % noun 
+        gloss_that_are_and(Nouns),       % that are noun 
         gloss_all_and(Others).           % E.g., it has two feet that
                                          % are sharp claws.
 top_gloss(attr(is_a, What, Attrs)) -->
@@ -523,7 +538,7 @@ top_gloss(attr(is_like, What, Attrs)) -->
 % adverbs before a verb requires ands.
 % Of course, number (e.g., singular vs. plural) is not accounted for!
 gloss(attr(is_a, What, Attrs)) -->   % Nouns.
-        gloss_all(Attrs),
+        gloss_all(Attrs),            
         gloss_poss_pl(What).
 gloss(attr(does, Verb, Attrs)) -->    % Verbs (not is/has).
         [that], { split_attrs(Attrs, is_how, Advs, Others) },
@@ -541,12 +556,12 @@ gloss(attr(is_like, What, Attrs)) --> % Adjectives.
 gloss(attr(is_how, How, Attrs)) -->   % Adverbs; note that attached
         gloss_all(Attrs),             % attributes (which should also
         [How].                        % be adverbs) go FIRST, ensuring
-                                      % the "most important" adverb is
+                                      % the "most important" adverb is 
                                       % last.
 
 % Gloss as possibly a plural.
 % A cop-out for not handling number.  Currently unused.
-gloss_poss_pl(Atom) -->
+gloss_poss_pl(Atom) --> 
 %       { atom_concat(Atom, '(s)', AtomPl) },  % skipping plurals for now.
         { AtomPl = Atom },
         [AtomPl].
@@ -559,8 +574,8 @@ gloss_all([Attr|Attrs]) --> gloss(Attr), gloss_all(Attrs).
 % (Ands are used between every pair b/c there's no punctuation!)
 gloss_all_and([]) --> [].
 gloss_all_and([Attr]) --> gloss(Attr).
-gloss_all_and([Attr1,Attr2|Attrs]) -->
-        gloss(Attr1), [and],
+gloss_all_and([Attr1,Attr2|Attrs]) --> 
+        gloss(Attr1), [and], 
         gloss_all_and([Attr2|Attrs]).
 
 % Gloss the list with ands, starting with "that is" if non-empty.
@@ -572,12 +587,12 @@ gloss_that_are_and([A|As]) --> [that], [is], gloss_all_and([A|As]).
 % the attributes from Attrs with types (first args) matching Target
 % and Misses are the rest.  (Order is preserved.)
 split_attrs([], _, [], []).
-split_attrs([attr(Target, Val, Subs)|Rest],
+split_attrs([attr(Target, Val, Subs)|Rest], 
             Target,
-            [attr(Target, Val, Subs)|Targets],
-            Others) :-
+            [attr(Target, Val, Subs)|Targets], 
+            Others) :- 
         split_attrs(Rest, Target, Targets, Others).
-split_attrs([attr(NonTarget, Val, Subs)|Rest],
+split_attrs([attr(NonTarget, Val, Subs)|Rest], 
             Target, Targets,
             [attr(NonTarget, Val, Subs)|Others]) :-
         Target \= NonTarget,
@@ -590,64 +605,14 @@ write_sentence([]).
 write_sentence([Word|Words]) :- write(Word), tab(1), write_sentence(Words).
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Adding non-existing local DB words from Wordnet DB  %%
-%% to local DB.                                        %% 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% stem_word(X) stems a word to its other forms 
-%% ie stem_word(harder) uses the Morphological analysis tool to produce a list of stems 
-%% [harder,harde,-er,hard,-er]
-stem_word(X) :- morph_atoms_bag(X, B), 
-                flatten(B, Y), 
-                check_item(Y), !.
-
-
-%% check_item([]) recurses over the list of stems from stem_word(X)
-check_item([]).
-check_item([Head|Tail]) :-  check_wordnet_dictionary(Head),
-                            check_item(Tail).
-
-%% check_wordnet_dictionary(X) Checks to see if the word is already in our local DB,
-%% if not it checks to see if the word exists in the external Wordnet DB because
-%% only core words are contained in their DB. It will insert all types of the word in Wordnet into
-%% our local db. ie kick can be both a noun and verb, it will add both.
-check_wordnet_dictionary(X) :- not(s(_, _, X, Type, _, _)).
-
-check_wordnet_dictionary(X) :- 
-            s(ID, W_num, X, Type, Sense_num, Tag_count), 
-            insert_All_Forms_of_a_Word(X, Type), fail ; true.
-             
-
-insert_All_Forms_of_a_Word(X, Type) :- 
-            check_not_in_local_dictionary(X, Type),
-            insertWord(X, Type). 
-
-%% check to make sure word is not in local DB.
-check_not_in_local_dictionary(X, n) :- not(n(X)), !.
-check_not_in_local_dictionary(X, v) :- not(v(X)), !.
-check_not_in_local_dictionary(X, r) :- not(adv(X)), !.
-check_not_in_local_dictionary(X, s) :- not(adj(X)), !.
-check_not_in_local_dictionary(X, a) :- not(adj(X)), !. 
-
-%% Insert non-existing word into local DB.
-%% There are two versions of adjectives that Wordnet returns
-%% One is regular adjective "a" the other is adjective satellite s.
-insertWord(X, n) :- assert(n(X)).
-insertWord(X, v) :- assert(v(X)).
-insertWord(X, r) :- assert(adv(X)).
-insertWord(X, s) :- assert(adj(X)).
-insertWord(X, a) :- assert(adj(X)).
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Vocabulary for the PESS parser                               %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % These are a bunch of bird-related Here's a bunch of bird-related
-% words. Note, however, that they really do not belong in this file!
-% Ideally, they would either:
+% words. Note, however, that they really do not belong in this file! 
+% Ideally, they would either: 
 % - be unnecessary because an external dictionary would provide words.
 % - be embedded in the knowledge base file itself as another type of
 %   parsable statement.

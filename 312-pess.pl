@@ -163,8 +163,6 @@ prove_all([Assert|Asserts]) :- known(Assert), prove_all(Asserts).
 prove_not_some([Assert|_]) :- known(not(Assert)), !.
 prove_not_some([_|Asserts]) :- prove_not_some(Asserts).
 
-
-
 %%%%%%%%%%%%%%% ask and related %%%%%%%%%%%%%%%%%%%
 
 % Ask the user whether the fact X is true.
@@ -340,7 +338,7 @@ load_rules(F) :-
 % Load rules from default input.
 load_rules :-
         read_sentence(L),   % Read a rule.
-        %% bug(L),
+%       bug(L),
         process(L),         % Insert the rule into the DB.
         load_rules.         % Tail recursive loop.
 load_rules :- !.            % Cut avoids backtracking (and re-processing!)
@@ -351,14 +349,8 @@ load_rules :- !.            % Cut avoids backtracking (and re-processing!)
 process([]) :- !.           % Ignore empty rules.
 process(['rule:'|L]) :-     % Found a rule.
         rule(R,L,[]),       % Parse the rule.
-        %% bug(R),             % Print it for debugging.
-        assert_rules(R), !. % Assert it (them, potentially) in the DB.
-
-process(['words:'|L]) :-     % Found a word.
-        word_rule(R,L,[]),   % Parse the word.
         bug(R),             % Print it for debugging.
         assert_rules(R), !. % Assert it (them, potentially) in the DB.
-
 process(L) :-
         write('trans error on:'),nl,
         write(L),nl.
@@ -370,16 +362,8 @@ assert_rules([R|Rs]) :- assertz(R), assert_rules(Rs).
 % Delete the contents of the database (the rules, not the knowledge).
 % Also establishes the default top goal (to find out what "it" is).
 clear_db :-
-        abolish(rule,2),      % Clears out previously built rules
-        abolish(n,1),
-        abolish(v,1),
-        abolish(adj,1),
-        abolish(adv,1),
+        abolish(rule,2),
         dynamic(rule/2),
-        dynamic(n/1),
-        dynamic(v/1),
-        dynamic(adv/1),
-        dynamic(adj/1),
         %% For now, top_goal is set manually.
         assertz(rule(top_goal(X), [attr(is_a, X, [])])).
 
@@ -392,6 +376,7 @@ bug(X) :- write(X).
 %% NOTE: to improve modularity, read_sentence/1 is defined in
 %% 312pess-grammar.pl (which allows that file to run independently of
 %% 312pess.pl).
+
 
 
 
