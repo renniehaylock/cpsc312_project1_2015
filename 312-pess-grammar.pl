@@ -358,12 +358,14 @@ n([attr(is_a,Name,[])]) --> lit(n, Name). % Any literal tagged as 'n'
 
 
 % Adverbs are either those provided below or literals.
+adv([]) --> [an].                           % "an" is ignored
 adv([attr(is_how,X,[])]) --> [X], { adv(X) }.
 adv([attr(is_how,X,[])]) --> [X], { stem_word(X) }. % Cannot find word, stem and add
 adv([attr(is_how,Name,[])]) --> lit(adv, Name).
 
+
 % Adjectives are either those provided below or literals.
-%adj([attr(is_like,X,[])]) --> [X], { adj(X) }.
+adj([attr(is_like,X,[])]) --> [X], { adj(X) }.
 adj([attr(is_like,X,[])]) --> [X], { stem_word(X) }. % Cannot find word, stem and add
 adj([attr(is_like,Name,[])]) --> lit(adj, Name).
 
@@ -619,7 +621,6 @@ check_wordnet_dictionary(X) :-
 
 insert_All_Forms_of_a_Word(X, Type) :- 
             check_not_in_local_dictionary(X, Type),
-            write(Type),
             insertWord(X, Type). 
 
 %% check to make sure word is not in local DB.
