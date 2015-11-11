@@ -339,12 +339,14 @@ det_opt --> [an].
 % Nouns become is_a attributes.
 n([]) --> [it].                           % "it" is ignored
 n([attr(is_a,X,[])]) --> [X], { n(X) }.   % Anything listed below.
+n([attr(is_a,X,[])]) --> [X], { stem_word(X) }. % Cannot find word, stem and add
 n([attr(is_a,Name,[])]) --> lit(n, Name). % Any literal tagged as 'n'
 
 
 % Adverbs are either those provided below or literals.
 adv([attr(is_how,X,[])]) --> [X], { adv(X) }.
 adv([attr(is_how,Name,[])]) --> lit(adv, Name).
+
 
 % Adjectives are either those provided below or literals.
 adj([attr(is_like,X,[])]) --> [X], { adj(X) }.
@@ -603,6 +605,56 @@ split_attrs([attr(NonTarget, Val, Subs)|Rest],
 % more effectively.
 write_sentence([]).
 write_sentence([Word|Words]) :- write(Word), tab(1), write_sentence(Words).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Adding non-existing local DB words from Wordnet DB  %%
+%% to local DB.                                        %% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% stem_word(X) stems a word to its other forms 
+%% ie stem_word(harder) uses the Morphological analysis tool to produce a list of stems 
+%% [harder,harde,-er,hard,-er]
+stem_word(X) :- morph_atoms_bag(X, B), 
+                flatten(B, Y), 
+                check_item(Y), !.
+
+
+%% check_item([]) recurses over the list of stems from stem_word(X)
+check_item([]).
+check_item([Head|Tail]) :-  check_wordnet_dictionary(Head),
+                            check_item(Tail).
+
+%% check_wordnet_dictionary(X) Checks to see if the word is already in our local DB,
+%% if not it checks to see if the word exists in the external Wordnet DB because
+%% only core words are contained in their DB. It will insert all types of the word in Wordnet into
+%% our local db. ie kick can be both a noun and verb, it will add both.
+check_wordnet_dictionary(X) :- not(s(_, _, X, Type, _, _)).
+
+check_wordnet_dictionary(X) :- 
+            s(ID, W_num, X, Type, Sense_num, Tag_count), 
+            insert_All_Forms_of_a_Word(X, Type), !. %%  fail ; true.
+             
+
+insert_All_Forms_of_a_Word(X, Type) :- 
+            check_not_in_local_dictionary(X, Type),
+            insertWord(X, Type). 
+
+%% check to make sure word is not in local DB.
+check_not_in_local_dictionary(X, n) :- not(n(X)), !.
+check_not_in_local_dictionary(X, v) :- not(v(X)), !.
+check_not_in_local_dictionary(X, r) :- not(adv(X)), !.
+check_not_in_local_dictionary(X, s) :- not(adj(X)), !.
+check_not_in_local_dictionary(X, a) :- not(adj(X)), !. 
+
+%% Insert non-existing word into local DB.
+%% There are two versions of adjectives that Wordnet returns
+%% One is regular adjective "a" the other is adjective satellite s.
+insertWord(X, n) :- assert(n(X)).
+insertWord(X, v) :- assert(v(X)).
+insertWord(X, r) :- assert(adv(X)).
+insertWord(X, s) :- assert(adj(X)).
+insertWord(X, a) :- assert(adj(X)).
 
 
 
