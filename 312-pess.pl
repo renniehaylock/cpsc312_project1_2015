@@ -50,7 +50,41 @@
 %% Interpreter loop                                             %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%% TODO!! %%%%%%%%%%%%%%%%%%%%
+main :- 
+    greet,
+    repeat, 
+    write("\n> "), 
+    read(X), 
+    do(X), 
+    X == quit.
+
+%% Identify Commands here
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+do(load)  :-  load_kb,!.
+do(solve) :-  solve, !.
+do(help)  :-  help, !.
+do(quit).
+
+%% Map commands to actions
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+greet :- 
+    write("This is the CPSC312 Prolog Expert System Shell. \nBased on Amzi's 'native Prolog shell'.\n"),
+    help.
+
+help :-
+    write("Type help. load. solve. or quit. at the prompt. Notice the period after each command!").
+
+load_kb :-
+    write("Enter filename in single quotes,followed by a period (e.g'bird.kb'.): "), 
+    read(F), 
+    load_rules(F).
+
+do(X) :-
+    write(X), 
+    write(' is not a legal command.'), nl, 
+    fail.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Solving, asking, and proving                                 %%
