@@ -338,7 +338,7 @@ load_rules(F) :-
 % Load rules from default input.
 load_rules :-
         read_sentence(L),   % Read a rule.
-%       bug(L),
+        %bug(L),
         process(L),         % Insert the rule into the DB.
         load_rules.         % Tail recursive loop.
 load_rules :- !.            % Cut avoids backtracking (and re-processing!)
@@ -348,9 +348,17 @@ load_rules :- !.            % Cut avoids backtracking (and re-processing!)
 % files, I might do it by writing extra process clauses below.
 process([]) :- !.           % Ignore empty rules.
 process(['rule:'|L]) :-     % Found a rule.
+		%write('rule L: '),
+		%write(L),nl,
         rule(R,L,[]),       % Parse the rule.
-        bug(R),             % Print it for debugging.
+        %bug(R),             % Print it for debugging.
+		%write('rule R: '),
+		%write(R),nl,
         assert_rules(R), !. % Assert it (them, potentially) in the DB.
+process(['goal:'|L]) :-
+		write('goal L: '),
+		write(L),nl,
+		assertz(rule(top_goal(yes), [attr(does, eat, [attr(is_a, insects, [])])])).
 process(L) :-
         write('trans error on:'),nl,
         write(L),nl.
@@ -363,9 +371,11 @@ assert_rules([R|Rs]) :- assertz(R), assert_rules(Rs).
 % Also establishes the default top goal (to find out what "it" is).
 clear_db :-
         abolish(rule,2),
-        dynamic(rule/2),
+        dynamic(rule/2).
         %% For now, top_goal is set manually.
-        assertz(rule(top_goal(X), [attr(is_a, X, [])])).
+        %assertz(rule(top_goal(X), [attr(is_a, X, [])])).
+        %assertz(rule(top_goal(yes), [attr(is_a, swan, [attr(is_like, brown, [])])])).
+        %assertz(rule(top_goal(yes), [attr(does, eat, [attr(is_a, insects, [])])])).
 
 % Gloss a rule for debugging output.
 bug(X) :- write('Understood: '), 

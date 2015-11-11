@@ -191,6 +191,11 @@ rule(Rules) -->
         { build_rules([], Head, Rules) }.    % That's a fact! No body.
 
 
+		
+% Questions
+
+
+
 % 1 or more sentences joined by ands.
 sentence_conj_plus(Attrs) -->
         sentence(First), [and],
@@ -203,7 +208,14 @@ sentence_conj_plus(Attrs) -->
 % Sentences that start with 'it' or other vacuous subjects.
 sentence(Attrs) -->
         np([]), vp(Attrs).
+		
+sentence(Attrs) -->
+        vp(Attrs).
 
+% Questions
+sentence(Attrs) -->
+        q(Attrs), sentence(Attrs).
+		
 % Sentences that start with meaningful subjects are
 % noun phrase then verb phrase.
 % Sentences like: "its talons are sharp" are converted to
@@ -216,7 +228,7 @@ sentence(Attrs) -->
           build_prepend_attrs(NPTermsHas, 
                               VPTerms, 
                               Attrs) }.
-
+							  
 % Verb phrases..
 vp(VPTerms) -->                 % It has or it contains
         vhas,                   
@@ -230,7 +242,7 @@ vp(VPTerms) -->
 vp(VPTerms) -->
         vis,                    % It is w/nouns (which can also have adjs).
         np_conj_plus(VPTerms).
-
+		
 vp(VPTerms) -->                 % It advs verb nouns
     adv_conj(AVTerms),          % E.g., It slowly eats worms. 
     vdoes(VTerms),              % All the attached attributes just
@@ -243,6 +255,11 @@ vp(VPTerms) -->
     adv_conj_plus(AVTerms),     % E.g., it eats slowly.
     { build_prepend_attrs(VTerms, AVTerms, VPTerms) }.
 
+vp(VPTerms) -->
+    adv_conj_plus(AVTerms),     % E.g., it eats slowly.
+    vdoes(VTerms),              % It verb advs.
+    { build_prepend_attrs(VTerms, AVTerms, VPTerms) }.
+	
 % One or more noun phrases connected by and.
 np_conj_plus(NPCTerms) -->
     np(NPTerms), [and],
@@ -305,7 +322,13 @@ int_adv_plus(AVPTerms) -->
 int_adv_plus(AVPTerms) -->
     adv(AVPTerms).
 
+q_opt --> [].
+q_opt --> [does].
 
+q(QTerms) -->
+		q_opt,
+		np(NPTerms).
+	
 % Noun phrase is determiner (or "its") + adjectives + noun.
 % Produces an is_a with attached attributes.
 np(NPTerms) --> 
@@ -724,6 +747,7 @@ adj(square).
 :- dynamic(v/1).  % Ensure that the predicate can be modified dynamically
 
 v(eats).
+v(eat).
 v(flies).
 v(lives).
 v(feeds).
