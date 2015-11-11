@@ -1,6 +1,4 @@
-
-goal:
-does it eat insects.
+goal: does it eats insects.
 
 rule:
 if   its nostrils are external and tubular and 

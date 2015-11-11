@@ -191,10 +191,19 @@ rule(Rules) -->
         { build_rules([], Head, Rules) }.    % That's a fact! No body.
 
 
+build_goal(L,G,Attrs) :-
+		G = yes,
+		Attrs = sentence(Attrs).
+		%Attrs = [attr(is_a, G, [])].
 		
 % Questions
+q_opt --> [does].
+q_opt --> [do].
 
-
+% Questions starting with do|does
+sentence(Attrs) -->
+        q_opt,
+		sentence(Attrs).
 
 % 1 or more sentences joined by ands.
 sentence_conj_plus(Attrs) -->
@@ -212,10 +221,8 @@ sentence(Attrs) -->
 sentence(Attrs) -->
         vp(Attrs).
 
-% Questions
-sentence(Attrs) -->
-        q(Attrs), sentence(Attrs).
-		
+
+
 % Sentences that start with meaningful subjects are
 % noun phrase then verb phrase.
 % Sentences like: "its talons are sharp" are converted to
@@ -255,10 +262,6 @@ vp(VPTerms) -->
     adv_conj_plus(AVTerms),     % E.g., it eats slowly.
     { build_prepend_attrs(VTerms, AVTerms, VPTerms) }.
 
-vp(VPTerms) -->
-    adv_conj_plus(AVTerms),     % E.g., it eats slowly.
-    vdoes(VTerms),              % It verb advs.
-    { build_prepend_attrs(VTerms, AVTerms, VPTerms) }.
 	
 % One or more noun phrases connected by and.
 np_conj_plus(NPCTerms) -->
@@ -322,12 +325,6 @@ int_adv_plus(AVPTerms) -->
 int_adv_plus(AVPTerms) -->
     adv(AVPTerms).
 
-q_opt --> [].
-q_opt --> [does].
-
-q(QTerms) -->
-		q_opt,
-		np(NPTerms).
 	
 % Noun phrase is determiner (or "its") + adjectives + noun.
 % Produces an is_a with attached attributes.

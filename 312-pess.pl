@@ -348,17 +348,15 @@ load_rules :- !.            % Cut avoids backtracking (and re-processing!)
 % files, I might do it by writing extra process clauses below.
 process([]) :- !.           % Ignore empty rules.
 process(['rule:'|L]) :-     % Found a rule.
-		%write('rule L: '),
-		%write(L),nl,
         rule(R,L,[]),       % Parse the rule.
         %bug(R),             % Print it for debugging.
-		%write('rule R: '),
-		%write(R),nl,
         assert_rules(R), !. % Assert it (them, potentially) in the DB.
 process(['goal:'|L]) :-
-		write('goal L: '),
-		write(L),nl,
-		assertz(rule(top_goal(yes), [attr(does, eat, [attr(is_a, insects, [])])])).
+		sentence(Attrs,L,[]),
+		write(Attrs),nl,
+		assertz(rule(top_goal(yes), Attrs)),
+		write(L),nl.
+		
 process(L) :-
         write('trans error on:'),nl,
         write(L),nl.
