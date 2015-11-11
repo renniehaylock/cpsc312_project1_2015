@@ -64,17 +64,32 @@ main :-
 do(load)  :-  load_kb,!.
 do(solve) :-  solve, !.
 do(help)  :-  help, !.
+do(list)  :-  list.
+do(list)  :-  !. %% To prevent backtracking to illegal command do(X)
 do(quit).
 
 %% Map commands to actions
 %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+list :- 
+  current_predicate(rule/2), 
+  rule(X,Y), 
+  get_rules([rule(X,Y)]).
+
+list :-
+  not(current_predicate(rule/2)), 
+  no_rule_found.
+
+no_rule_found :- 
+    write("No rules have been loaded yet, use load. to load knowledge base file").
 
 greet :- 
     write("This is the CPSC312 Prolog Expert System Shell. \nBased on Amzi's 'native Prolog shell'.\n"),
     help.
 
 help :-
-    write("Type help. load. solve. or quit. at the prompt. Notice the period after each command!").
+    write("Type help. load. solve. list. or quit. at the prompt. Notice the period after each command!").
 
 load_kb :-
     write("Enter filename in single quotes,followed by a period (e.g'bird.kb'.): "), 
@@ -85,6 +100,11 @@ do(X) :-
     write(X), 
     write(' is not a legal command.'), nl, 
     fail.
+
+get_rules(X) :- 
+        write('Rule: '), 
+        plain_gloss(X, Text), 
+        write_sentence(Text), nl.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Solving, asking, and proving                                 %%
