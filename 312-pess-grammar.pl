@@ -351,6 +351,7 @@ adv([attr(is_how,Name,[])]) --> lit(adv, Name).
 
 
 % Adjectives are either those provided below or literals.
+adj([]) --> [an].
 adj([attr(is_like,X,[])]) --> [X], { adj(X) }.
 adj([attr(is_like,X,[])]) --> [X], { stem_word(X) }. % Cannot find word, stem and add
 adj([attr(is_like,Name,[])]) --> lit(adj, Name).
