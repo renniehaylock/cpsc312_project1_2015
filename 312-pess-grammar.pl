@@ -637,7 +637,7 @@ check_wordnet_dictionary(X) :- not(s(_, _, X, Type, _, _)).
 
 check_wordnet_dictionary(X) :- 
             s(ID, W_num, X, Type, Sense_num, Tag_count), 
-            insert_All_Forms_of_a_Word(X, Type), fail ; true.
+            insert_All_Forms_of_a_Word(X, Type), !. %%  fail ; true.
              
 
 insert_All_Forms_of_a_Word(X, Type) :- 
