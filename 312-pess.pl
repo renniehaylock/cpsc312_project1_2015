@@ -333,6 +333,7 @@ load_rules(F) :-
         see(F),
         load_rules,
         write('rules loaded'),nl,
+		assertz(rule(top_goal(X), [attr(is_a, X, [])])),
         seen, !.
 
 % Load rules from default input.
@@ -351,11 +352,9 @@ process(['rule:'|L]) :-     % Found a rule.
         rule(R,L,[]),       % Parse the rule.
         %bug(R),             % Print it for debugging.
         assert_rules(R), !. % Assert it (them, potentially) in the DB.
-process(['goal:'|L]) :-
-		sentence(Attrs,L,[]),
-		write(Attrs),nl,
-		assertz(rule(top_goal(yes), Attrs)),
-		write(L),nl.
+process(['goal:'|GoalText]) :-
+		question(Attrs,G,GoalText,[]),
+		assertz(rule(top_goal(G), Attrs)).
 		
 process(L) :-
         write('trans error on:'),nl,

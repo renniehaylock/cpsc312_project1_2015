@@ -1,4 +1,9 @@
-goal: does it eats insects.
+goal: what does it have.
+goal: does it eat insects.
+goal: is it a black bird.
+goal: it is a small what.
+goal: what is it.
+
 
 rule:
 if   its nostrils are external and tubular and 

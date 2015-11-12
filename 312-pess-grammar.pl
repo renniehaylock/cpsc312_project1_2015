@@ -190,21 +190,47 @@ rule(Rules) -->
         sentence(Head),                      % S (only)
         { build_rules([], Head, Rules) }.    % That's a fact! No body.
 
-
-build_goal(L,G,Attrs) :-
-		G = yes,
-		Attrs = sentence(Attrs).
-		%Attrs = [attr(is_a, G, [])].
 		
 % Questions
 q_opt --> [does].
 q_opt --> [do].
 
-% Questions starting with do|does
-sentence(Attrs) -->
-        q_opt,
-		sentence(Attrs).
+% what is it
+question([attr(is_a, X, [])],X) -->
+	what,
+	vis,
+	np([]).
 
+% what does it have
+question([attr(has_a, X, [])],X) -->
+	what,
+	q_opt,
+	np([]),
+	vhas.
+	
+%is it question with noum
+question(QAttrs,yes) -->
+		vis,
+		np([]),
+		np_conj_plus(QAttrs).
+
+% Questions starting with do|does
+question(QAttrs,yes) -->
+        q_opt,
+		sentence(QAttrs).
+
+% question finishing in what
+question(QAttrs,G) -->
+		np([]),
+		vis,
+		np(QAttrs,G).
+
+np(NPTerms,G) -->
+        det_opt,
+        adjp_star(APTerms), 
+		what,
+        { n(G), build_prepend_attrs([attr(is_a, G,[])], APTerms, NPTerms) }.		
+what --> [what].
 % 1 or more sentences joined by ands.
 sentence_conj_plus(Attrs) -->
         sentence(First), [and],
@@ -220,7 +246,6 @@ sentence(Attrs) -->
 		
 sentence(Attrs) -->
         vp(Attrs).
-
 
 
 % Sentences that start with meaningful subjects are
@@ -713,6 +738,7 @@ adj(webbed).
 adj(flat).
 adj(curved).
 adj(sharp).
+adj(small).
 adj(hooked).
 adj(one).
 adj(long).
