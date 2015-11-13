@@ -157,7 +157,7 @@ try_parse :- try_parse(P),
         write('Understood: '), write_sentence(Text), nl.
 
 % Debugging predicate for quick test parsing of a rule.
-try_parse(P) :- read_sentence(Sent), rule(P, Sent, []).
+try_parse(P) :- read_sentence(Sent), (rule(P, Sent, []); question(P, X, Sent, [])).
 
 %% A sample parsed sentence for testing.  Should mean:
 %% It very slowly and carefully eats languidly flying very very 
@@ -190,62 +190,34 @@ rule(Rules) -->
         sentence(Head),                      % S (only)
         { build_rules([], Head, Rules) }.    % That's a fact! No body.
 
-		
-% Questions
-q_opt --> [does].
-q_opt --> [do].
+question(Attrs,A) --> sentence(Attrs,A).
 
-% what is it
-question([attr(is_a, X, [])],X) -->
-	what,
-	vis,
-	np([]).
 
-% what does it have
-question([attr(has_a, X, [])],X) -->
-	what,
-	q_opt,
-	np([]),
-	vhas.
-	
-%is it question with noum
-question(QAttrs,yes) -->
-		vis,
-		np([]),
-		np_conj_plus(QAttrs).
+n([],A) --> [it].
+n([attr(is_a,A,[])],A) --> [what], { n(A) }.
+n([attr(is_a,X,[])],A) --> [X], { n(X) }.
+adv([attr(is_how,X,[])],A) --> [X], { adv(X) }.
+adv([attr(is_how,A,[])],A) --> [what], { adv(A) }.
+adj([attr(is_like,X,[])],A) --> [X], { adj(X) }.
+adj([attr(is_like,A,[])],A) --> [what], { adj(A) }.
+vdoes([attr(does,X,[])],A) --> [X], { v(X) }.
+vdoes([attr(does,A,[])],A) --> [what], { v(A) }.
 
-% Questions starting with do|does
-question(QAttrs,yes) -->
-        q_opt,
-		sentence(QAttrs).
-
-% question finishing in what
-question(QAttrs,G) -->
-		np([]),
-		vis,
-		np(QAttrs,G).
-
-np(NPTerms,G) -->
-        det_opt,
-        adjp_star(APTerms), 
-		what,
-        { n(G), build_prepend_attrs([attr(is_a, G,[])], APTerms, NPTerms) }.		
-what --> [what].
 % 1 or more sentences joined by ands.
 sentence_conj_plus(Attrs) -->
-        sentence(First), [and],
+        sentence(First,_), [and],
         sentence_conj_plus(Rest),
         { append(First, Rest, Attrs) }.  % Put the attributes together.
                                          % Would diff lists be better here?
 sentence_conj_plus(Attrs) -->
-        sentence(Attrs).
+        sentence(Attrs,_).
 
 % Sentences that start with 'it' or other vacuous subjects.
-sentence(Attrs) -->
-        np([]), vp(Attrs).
+sentence(Attrs,A) -->
+        np([],A), vp(Attrs,A).
 		
-sentence(Attrs) -->
-        vp(Attrs).
+sentence(Attrs,A) -->
+        vp(Attrs,A).
 
 
 % Sentences that start with meaningful subjects are
@@ -253,8 +225,8 @@ sentence(Attrs) -->
 % Sentences like: "its talons are sharp" are converted to
 % a canonical form with "it" as the subject:
 % "it has talons that are sharp". 
-sentence(Attrs) -->
-        np([NPT|NPTs]), vp(VPTerms),
+sentence(Attrs,A) -->
+        np([NPT|NPTs],A), vp(VPTerms,A),
         { convert_to_has_a([NPT|NPTs], 
                            NPTermsHas),   % Convert to canonical form.
           build_prepend_attrs(NPTermsHas, 
@@ -262,79 +234,79 @@ sentence(Attrs) -->
                               Attrs) }.
 							  
 % Verb phrases..
-vp(VPTerms) -->                 % It has or it contains
+vp(VPTerms,A) -->                 % It has or it contains
         vhas,                   
-        np_conj(NPTerms),       % The noun should be has_a, not is_a
+        np_conj(NPTerms,A),       % The noun should be has_a, not is_a
         { convert_to_has_a(NPTerms, VPTerms) }.
 
-vp(VPTerms) -->
+vp(VPTerms,A) -->
         vis,                    % It is w/adjectives.
-        adj_conj_plus(VPTerms).
+        adj_conj_plus(VPTerms,A).
 
-vp(VPTerms) -->
+vp(VPTerms,A) -->
         vis,                    % It is w/nouns (which can also have adjs).
-        np_conj_plus(VPTerms).
+        np_conj_plus(VPTerms,A).
 		
-vp(VPTerms) -->                 % It advs verb nouns
-    adv_conj(AVTerms),          % E.g., It slowly eats worms. 
-    vdoes(VTerms),              % All the attached attributes just
-    np_conj(NPTerms),           % get thrown together on the verb.
+vp(VPTerms,A) -->                 % It advs verb nouns
+    adv_conj(AVTerms,A),          % E.g., It slowly eats worms. 
+    vdoes(VTerms,A),              % All the attached attributes just
+    np_conj(NPTerms,A),           % get thrown together on the verb.
     { append(AVTerms, NPTerms, ModTerms),
       build_prepend_attrs(VTerms, ModTerms, VPTerms) }.
 
-vp(VPTerms) -->
-    vdoes(VTerms),              % It verb advs.
-    adv_conj_plus(AVTerms),     % E.g., it eats slowly.
+vp(VPTerms,A) -->
+    vdoes(VTerms,A),              % It verb advs.
+    adv_conj_plus(AVTerms,A),     % E.g., it eats slowly.
     { build_prepend_attrs(VTerms, AVTerms, VPTerms) }.
 
 	
 % One or more noun phrases connected by and.
-np_conj_plus(NPCTerms) -->
-    np(NPTerms), [and],
-    np_conj_plus(RestNPTerms),
+np_conj_plus(NPCTerms,A) -->
+    np(NPTerms,A), [and],
+    np_conj_plus(RestNPTerms,A),
     { append(NPTerms, RestNPTerms, NPCTerms) }.
-np_conj_plus(NPCTerms) -->
-    np(NPCTerms).
+np_conj_plus(NPCTerms,A) -->
+    np(NPCTerms,A).
 
 % Zero or more noun phrases connected by and.
-np_conj(NPCTerms) --> np_conj_plus(NPCTerms).
-np_conj([]) --> [].
+np_conj(NPCTerms,A) --> np_conj_plus(NPCTerms,A).
+np_conj([],A) --> [].
 
 % One or more adjectives (plus advs) connected by and.
-adj_conj_plus(ADJCTerms) -->
-    adjp(ADJTerms), [and],
-    adj_conj_plus(RestADJTerms),
+adj_conj_plus(ADJCTerms,A) -->
+    adjp(ADJTerms,A), [and],
+    adj_conj_plus(RestADJTerms,A),
     { append(ADJTerms, RestADJTerms, ADJCTerms) }.
-adj_conj_plus(ADJCTerms) -->
-    adjp(ADJCTerms).
+adj_conj_plus(ADJCTerms,A) -->
+    adjp(ADJCTerms,A).
 
 % Zero or more adjectives (plus advs) connected by and.
-adj_conj(ADJCTerms) --> adj_conj_plus(ADJCTerms).
-adj_conj([]) --> [].
+adj_conj(ADJCTerms,A) --> adj_conj_plus(ADJCTerms,A).
+adj_conj([],A) --> [].
 
 % One or more adverbs (w/modifying advs) connected by and.
-adv_conj_plus(AVCTerms) -->
-    adv_plus(AVTerms), [and],
-    adv_conj_plus(RestAVTerms),
+adv_conj_plus(AVCTerms,A) -->
+    adv_plus(AVTerms,A), [and],
+    adv_conj_plus(RestAVTerms,A),
     { append(AVTerms, RestAVTerms, AVCTerms) }.
-adv_conj_plus(AVCTerms) -->
-    adv_plus(AVCTerms).
+adv_conj_plus(AVCTerms,A) -->
+    adv_plus(AVCTerms,A).
 
 % Zero or more adverbs connected by and.
-adv_conj(AVCTerms) --> adv_conj_plus(AVCTerms).
-adv_conj([]) --> [].
+adv_conj(AVCTerms,A) --> adv_conj_plus(AVCTerms,A).
+adv_conj([],A) --> [].
 
 % One or more adverbs strung together.
-adv_plus(AVTerms) -->
-    int_adv_plus(AVList),                % List of raw attributes, 
+adv_plus(AVTerms,A) -->
+    int_adv_plus(AVList,A),                % List of raw attributes, 
                                          % in forward order.
     { build_up_advs(AVList, AVTerms) }.  % Build them up in reverse order.
                                          % This nests them w/last adverb
                                          % in the text outermost.
 
 % Zero or more adverbs strung together.
-adv_star(AVTerms) --> adv_plus(AVTerms).
-adv_star([]) --> [].
+adv_star(AVTerms,A) --> adv_plus(AVTerms,A).
+adv_star([],A) --> [].
 
 % Collect one or more adverbs into a list (as though they didn't
 % modify each other) to be converted into nested (attached) attributes
@@ -343,34 +315,34 @@ adv_star([]) --> [].
 % adv_plus(Terms), adv(LastTerms), 
 % { build_prepend_attrs(Terms, LastTerm, ResultTerms) }
 % However, this is left recursive and will run forever.
-int_adv_plus(AVPTerms) -->
-    adv(AVTerms),
-    int_adv_plus(RestAVTerms),
+int_adv_plus(AVPTerms,A) -->
+    adv(AVTerms,A),
+    int_adv_plus(RestAVTerms,A),
     { append(AVTerms, RestAVTerms, AVPTerms) }.
-int_adv_plus(AVPTerms) -->
-    adv(AVPTerms).
+int_adv_plus(AVPTerms,A) -->
+    adv(AVPTerms,A).
 
 	
 % Noun phrase is determiner (or "its") + adjectives + noun.
 % Produces an is_a with attached attributes.
-np(NPTerms) --> 
+np(NPTerms,A) --> 
         det_opt, 
-        adjp_star(APTerms), 
-        n(NTerms),
+        adjp_star(APTerms,A), 
+        n(NTerms,A),
         { build_prepend_attrs(NTerms, APTerms, NPTerms) }.
 
 % Zero or more adjectives (chained together without and before a noun).
 % Adjective phrases in a chain become a list of adjective phrases.
-adjp_star(APTerms) -->
-        adjp(FstAPTerms),
-        adjp_star(RestAPTerms),
+adjp_star(APTerms,A) -->
+        adjp(FstAPTerms,A),
+        adjp_star(RestAPTerms,A),
         { append(FstAPTerms, RestAPTerms, APTerms) }.
-adjp_star([]) --> []. 
+adjp_star([],A) --> []. 
 
 % An "adjective phrase", which may include adverbs.
-adjp(APTerms) -->
-        adv_star(AVTerms),
-        adj(AdjTerms),
+adjp(APTerms,A) -->
+        adv_star(AVTerms,A),
+        adj(AdjTerms,A),
         { build_prepend_attrs(AdjTerms, AVTerms, APTerms) }.
 
 
@@ -385,11 +357,13 @@ det_opt --> [an].
 n([]) --> [it].                           % "it" is ignored
 n([attr(is_a,X,[])]) --> [X], { n(X) }.   % Anything listed below.
 n([attr(is_a,Name,[])]) --> lit(n, Name). % Any literal tagged as 'n'
+n([attr(is_a,Name,[])],_) --> lit(n, Name). % Any literal tagged as 'n'
 
 
 % Adverbs are either those provided below or literals.
 adv([attr(is_how,X,[])]) --> [X], { adv(X) }.
 adv([attr(is_how,Name,[])]) --> lit(adv, Name).
+adv([attr(is_how,Name,[])],_) --> lit(adv, Name).
 
 % Adjectives are either those provided below or literals.
 adj([attr(is_like,X,[])]) --> [X], { adj(X) }.
@@ -398,8 +372,8 @@ adj([attr(is_like,Name,[])]) --> lit(adj, Name).
 
 % "Doing" verbs (as opposed to "has" and "is".
 % Either provided below or literals.
-vdoes([attr(does,X,[])]) --> [X], { v(X) }.
-vdoes([attr(does,Name,[])]) --> lit(v, Name).
+vdoes([attr(does,A,[])]) --> [A], { v(A) }.
+vdoes([attr(does,Name,[])],A) --> lit(v, Name).
 
 % "Having" verbs are "has" or "have" and "contain" or "contains".
 % The semi-colon is disjunction (just syntactic sugar
@@ -669,12 +643,12 @@ write_sentence([Word|Words]) :- write(Word), tab(1), write_sentence(Words).
 % Nouns.
 :- dynamic(n/1).    % Ensure that the predicate can be modified dynamically
 
+n(meat).
 n(order).
 n(nostrils).
 n(bill).
 n(waterfowl).
 n(falconiforms).
-n(meat).
 n(talons).
 n(feet).
 n(passerformes).
