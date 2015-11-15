@@ -387,12 +387,14 @@ load_rules(F) :-
         see(F),
         load_rules,
         write('rules loaded'),nl,
+		% THis is for the default goal if none is stated in KB file
+		assertz(rule(top_goal(X), [attr(is_a, X, [])])),
         seen, !.
 
 % Load rules from default input.
 load_rules :-
         read_sentence(L),   % Read a rule.
-%       bug(L),
+        %bug(L),
         process(L),         % Insert the rule into the DB.
         load_rules.         % Tail recursive loop.
 load_rules :- !.            % Cut avoids backtracking (and re-processing!)
@@ -403,8 +405,13 @@ load_rules :- !.            % Cut avoids backtracking (and re-processing!)
 process([]) :- !.           % Ignore empty rules.
 process(['rule:'|L]) :-     % Found a rule.
         rule(R,L,[]),       % Parse the rule.
-        bug(R),             % Print it for debugging.
+        %bug(R),             % Print it for debugging.
         assert_rules(R), !. % Assert it (them, potentially) in the DB.
+%%%%%%%%%%%%%%%%%% Addon for dynamic goal %%%%%%%%%%%%%%%%%%%
+% In here the process asks a question and assess the answer	
+process(['goal:'|GoalText]) :-
+		question(Attrs,Answer,GoalText,[]),
+		assertz(rule(top_goal(Answer), Attrs)).
 process(L) :-
         write('trans error on:'),nl,
         write(L),nl.
@@ -417,9 +424,11 @@ assert_rules([R|Rs]) :- assertz(R), assert_rules(Rs).
 % Also establishes the default top goal (to find out what "it" is).
 clear_db :-
         abolish(rule,2),
-        dynamic(rule/2),
+        dynamic(rule/2).
         %% For now, top_goal is set manually.
-        assertz(rule(top_goal(X), [attr(is_a, X, [])])).
+        %assertz(rule(top_goal(X), [attr(is_a, X, [])])).
+        %assertz(rule(top_goal(yes), [attr(is_a, swan, [attr(is_like, brown, [])])])).
+        %assertz(rule(top_goal(yes), [attr(does, eat, [attr(is_a, insects, [])])])).
 
 % Gloss a rule for debugging output.
 bug(X) :- write('Understood: '), 

@@ -1,0 +1,46 @@
+working_directory(_,'C:\\Users\\Andre\\OneDrive\\UBC\\cs312\\project\\cpsc312_project1_2015').
+consult('312-pess-grammar.pl').
+consult('312-pess.pl').
+load_rules('bird.kb').
+rule(X, [it,eats,insects], []).
+
+n(X,[bird],[]).
+
+
+
+is it a brown swan : attr(is_a, swan, [attr(is_like, brown, [])]))
+
+does it eat insects : attr(does, eat, [attr(is_a, insects, [])])).
+
+
+it is a small what : attr(is_a, X, [attr(is_like, small, [])]).
+
+what is it : attr(is_a, X, []))
+
+what does it have : attr(has_a, X, []))
+
+
+
+% what is it
+question([attr(is_a,A,[])],A) -->
+	[what],
+	vis,
+	np([],A).
+
+question(Attrs,A) -->
+	[what],
+	vis,
+	np(Attrs,A).
+
+is_it_q(QAttrs) -->
+	(np([],A), vis);
+	(vis,    np([],A)).
+
+% is it question finishing in what
+question(QAttrs,A) -->
+		is_it_q(QAttrs),
+		np(QAttrs,A).
+
+
+% Questions
+q_opt --> [does];[do].
