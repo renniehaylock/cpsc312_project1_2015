@@ -157,7 +157,7 @@ try_parse :- try_parse(P),
         write('Understood: '), write_sentence(Text), nl.
 
 % Debugging predicate for quick test parsing of a rule.
-try_parse(P) :- read_sentence(Sent), (rule(P, Sent, []); question(P, X, Sent, [])).
+try_parse(P) :- read_sentence(Sent), (rule(P, Sent, []); question(P, _, Sent, [])).
 
 %% A sample parsed sentence for testing.  Should mean:
 %% It very slowly and carefully eats languidly flying very very 
@@ -183,26 +183,46 @@ rule(Rules) -->                              % if S+ then S+
         [then], sentence_conj_plus(Head),    % conjunctive heads..
         { build_rules(Body, Head, Rules) }.  % broken into separate rules
 rule(Rules) -->                              % S if S+
-        sentence(Head), [if],                
+        sentence(Head,_), [if],                
         sentence_conj_plus(Body),
         { build_rules(Body, Head, Rules) }.
 rule(Rules) -->
-        sentence(Head),                      % S (only)
+        sentence(Head,_),                      % S (only)
         { build_rules([], Head, Rules) }.    % That's a fact! No body.
+
+		
+%%%%%%%%%%%%%%%%%%% addon to understand questions %%%%%%%%%%%%%%%%%%%
+% In order to understand questions, we need to allow the 
+% sentences to return a answer. So in every rule used in
+% sentences were added a variable. For asking questions
+% use question(Attrs,Answer,GoalText,[]).
+% What is now considered a generic noun that could mean
+% any of the nouns listed.
 
 question(Attrs,A) --> sentence(Attrs,A).
 
+% In order to understand how questions are formulated in
+% English, a few more rules to sentences were added below.
 
-n([],A) --> [it].
-n([attr(is_a,A,[])],A) --> [what], { n(A) }.
-n([attr(is_a,X,[])],A) --> [X], { n(X) }.
-adv([attr(is_how,X,[])],A) --> [X], { adv(X) }.
-adv([attr(is_how,A,[])],A) --> [what], { adv(A) }.
-adj([attr(is_like,X,[])],A) --> [X], { adj(X) }.
-adj([attr(is_like,A,[])],A) --> [what], { adj(A) }.
-vdoes([attr(does,X,[])],A) --> [X], { v(X) }.
-vdoes([attr(does,A,[])],A) --> [what], { v(A) }.
+% sentences that start with does/do (Does it have wings)
+does --> [does];[do].
+sentence(Attrs,A) -->
+		does, sentence(Attrs,A).
 
+% sentences starting with the verb is it (is it a bird)
+sentence(Attrs,A,[is,it|Rest],[]) :- 
+		sentence(Attrs,A,[it,is|Rest],[]).
+
+% sentences starting with the verb has it (has it a webbed feet)
+sentence(Attrs,A,[has,it|Rest],[]) :-
+		sentence(Attrs,A,[it,has|Rest],[]).
+
+% sentences starting with what + does + verb (what does it eat)
+sentence(Attrs,A,[what|Rest],[]) :-
+		append(Rest,[what],NewTerm),
+		sentence(Attrs,A,NewTerm,[]).
+
+%%%%%%%%%%%%%%%%%%% end of addon for questions%%%%%%%%%%%%%
 % 1 or more sentences joined by ands.
 sentence_conj_plus(Attrs) -->
         sentence(First,_), [and],
@@ -218,7 +238,6 @@ sentence(Attrs,A) -->
 		
 sentence(Attrs,A) -->
         vp(Attrs,A).
-
 
 % Sentences that start with meaningful subjects are
 % noun phrase then verb phrase.
@@ -270,7 +289,7 @@ np_conj_plus(NPCTerms,A) -->
 
 % Zero or more noun phrases connected by and.
 np_conj(NPCTerms,A) --> np_conj_plus(NPCTerms,A).
-np_conj([],A) --> [].
+np_conj([],_) --> [].
 
 % One or more adjectives (plus advs) connected by and.
 adj_conj_plus(ADJCTerms,A) -->
@@ -282,7 +301,7 @@ adj_conj_plus(ADJCTerms,A) -->
 
 % Zero or more adjectives (plus advs) connected by and.
 adj_conj(ADJCTerms,A) --> adj_conj_plus(ADJCTerms,A).
-adj_conj([],A) --> [].
+adj_conj([],_) --> [].
 
 % One or more adverbs (w/modifying advs) connected by and.
 adv_conj_plus(AVCTerms,A) -->
@@ -294,7 +313,7 @@ adv_conj_plus(AVCTerms,A) -->
 
 % Zero or more adverbs connected by and.
 adv_conj(AVCTerms,A) --> adv_conj_plus(AVCTerms,A).
-adv_conj([],A) --> [].
+adv_conj([],_) --> [].
 
 % One or more adverbs strung together.
 adv_plus(AVTerms,A) -->
@@ -306,7 +325,7 @@ adv_plus(AVTerms,A) -->
 
 % Zero or more adverbs strung together.
 adv_star(AVTerms,A) --> adv_plus(AVTerms,A).
-adv_star([],A) --> [].
+adv_star([],_) --> [].
 
 % Collect one or more adverbs into a list (as though they didn't
 % modify each other) to be converted into nested (attached) attributes
@@ -337,7 +356,7 @@ adjp_star(APTerms,A) -->
         adjp(FstAPTerms,A),
         adjp_star(RestAPTerms,A),
         { append(FstAPTerms, RestAPTerms, APTerms) }.
-adjp_star([],A) --> []. 
+adjp_star([],_) --> []. 
 
 % An "adjective phrase", which may include adverbs.
 adjp(APTerms,A) -->
@@ -354,26 +373,29 @@ det_opt --> [a].
 det_opt --> [an].
 
 % Nouns become is_a attributes.
-n([]) --> [it].                           % "it" is ignored
-n([attr(is_a,X,[])]) --> [X], { n(X) }.   % Anything listed below.
-n([attr(is_a,Name,[])]) --> lit(n, Name). % Any literal tagged as 'n'
+% What is now considered a generic noun that could mean
+% any of the nouns listed
+n([],_) --> [it].
+n([attr(is_a,A,[])],A) --> [what], { n(A) }.
+n([attr(is_a,X,[])],_) --> [X], { n(X) }.
 n([attr(is_a,Name,[])],_) --> lit(n, Name). % Any literal tagged as 'n'
 
 
 % Adverbs are either those provided below or literals.
-adv([attr(is_how,X,[])]) --> [X], { adv(X) }.
-adv([attr(is_how,Name,[])]) --> lit(adv, Name).
 adv([attr(is_how,Name,[])],_) --> lit(adv, Name).
+adv([attr(is_how,X,[])],_) --> [X], { adv(X) }.
+adv([attr(is_how,A,[])],A) --> [what], { adv(A) }.
 
 % Adjectives are either those provided below or literals.
-adj([attr(is_like,X,[])]) --> [X], { adj(X) }.
-adj([attr(is_like,Name,[])]) --> lit(adj, Name).
-
+adj([attr(is_like,Name,[])],_) --> lit(adj, Name).
+adj([attr(is_like,X,[])],_) --> [X], { adj(X) }.
+adj([attr(is_like,A,[])],A) --> [what], { adj(A) }.
 
 % "Doing" verbs (as opposed to "has" and "is".
 % Either provided below or literals.
-vdoes([attr(does,A,[])]) --> [A], { v(A) }.
-vdoes([attr(does,Name,[])],A) --> lit(v, Name).
+vdoes([attr(does,Name,[])],_) --> lit(v, Name).
+vdoes([attr(does,X,[])],_) --> [X], { v(X) }.
+vdoes([attr(does,A,[])],A) --> [what], { v(A) }.
 
 % "Having" verbs are "has" or "have" and "contain" or "contains".
 % The semi-colon is disjunction (just syntactic sugar
