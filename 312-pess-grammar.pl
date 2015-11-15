@@ -222,6 +222,17 @@ sentence(Attrs,A,[what|Rest],[]) :-
 		append(Rest,[what],NewTerm),
 		sentence(Attrs,A,NewTerm,[]).
 
+%%%%%%%%%%%%%% for bonus question 3 %%%%%%%%%
+
+% interpretation of 'what the heack is THAT'
+sentence([attr(is_a,A,[])],A) -->
+		[what],
+		[the,heck],
+		vis,
+		['THAT'].
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %%%%%%%%%%%%%%%%%%% end of addon for questions%%%%%%%%%%%%%
 % 1 or more sentences joined by ands.
 sentence_conj_plus(Attrs) -->
