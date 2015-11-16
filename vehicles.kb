@@ -12,8 +12,8 @@ then it is a "n:bicycle".
 
 rule:
 if   its "n:motors" are external and 
-     it "v:drives" "n:on water" and 
-     its "n:name" is "n:on the back"
+     it "v:floats" "n:on water" and 
+     it has "n:sails"
 then it is a "n:boat".
 
 rule:
