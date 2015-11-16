@@ -52,7 +52,7 @@
 
 main :- 
     greet,
-    repeat, 
+    repeat,
     write("\n> "), 
     read(X), 
     do(X), 
@@ -63,6 +63,7 @@ main :-
 
 do(load)  :-  load_kb,!.
 do(solve) :-  solve, !.
+do(goal) :-  load_goal, !.
 do(help)  :-  help, !.
 do(list)  :-  list.
 do(list)  :-  !. %% To prevent backtracking to illegal command do(X)
@@ -89,10 +90,16 @@ greet :-
     help.
 
 help :-
-    write("Type help. load. solve. list. or quit. at the prompt. Notice the period after each command!").
+    write("Type help. load. goal. solve. list. or quit. at the prompt. Notice the period after each command!").
 
+load_goal :-
+	write("Enter the new goal in single quotes, followed by a period: "),
+	read_sentence(GoalText),
+	process(['goal:'|GoalText]),
+	bug(GoalText).
+	
 load_kb :-
-    write("Enter filename in single quotes,followed by a period (e.g'bird.kb'.): "), 
+    write("Enter filename in single quotes, followed by a period (e.g'bird.kb'.): "), 
     read(F), 
     load_rules(F).
 
