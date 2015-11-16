@@ -1,0 +1,24 @@
+rule:
+if   its "n:tires" are "adj:wide" and "adj:thick" and 
+     it "v:drives" "n:on track" and 
+     its "n:height" is "adj:low" 
+then it is a "n:racecar".
+
+rule:
+if   its "n:wheels" are "adj:thin" and 
+     it "v:seats" "n:two people" and 
+     its "n:frame" is tubular 
+then it is a "n:bicycle".
+
+rule:
+if   its "n:motors" are external and 
+     it "v:drives" "n:on water" and 
+     its "n:name" is "n:on the back"
+then it is a "n:boat".
+
+rule:
+if   its "n:shape" is "adj:round" and 
+     it "v:feeds" "n:five people" and 
+     its "n:smell" is "adj:awesome" and
+     its "n:topping" is "n:cheese" 
+then it is a "n:cheese pizza".	 
