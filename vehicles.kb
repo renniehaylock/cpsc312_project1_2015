@@ -6,7 +6,7 @@ then it is a "n:racecar".
 
 rule:
 if   its "n:wheels" are "adj:thin" and 
-     it "v:seats" "n:two people" and 
+     it "v:seats" "n:one people" and 
      its "n:frame" is tubular 
 then it is a "n:bicycle".
 
