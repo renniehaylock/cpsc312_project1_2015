@@ -92,6 +92,23 @@ load_goal :-
 	process(['goal:'|GoalText]),
 	bug(GoalText).
 	
+QUESTION 5
+In similar fashion to question 4, question 5 utilizes the combination of read_sentence and process to take user's input
+and turn it into an assertion in our program. The code is under the "Interpreter Loop" heading. The program first prints the request "Enter a new rule: ", we use the read_sentence predicate which returns the user's rule in a list format, which we then feed to the process predicate which takes care of creating the proper assertions. The code looks as follows:
+
+assert :-
+  write("Enter a new rule: "),
+  read_sentence(RuleText),
+  process(['rule:'|RuleText]),
+  bug(RuleText).
+
+An example usage: 
+> assert.
+> Enter a new rule: if it eats chicken then it is a human.
+> Understood: if it eats chicken then it is a human 
+
+We can then call list. and verify that our new rule is liste
+
 QUESTION 6
 The purpose of question 6 was to add words to our local dictionary from WordNet that we did not have dynamically. The use of pronto_morph's morph_atoms_bag predicate returned a list of all the stems of the given word, such as [harder,harde,-er,hard,-er]. We would then check every stem against our local db with stem_word(X).
 

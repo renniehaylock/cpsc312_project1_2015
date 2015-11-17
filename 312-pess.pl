@@ -67,6 +67,7 @@ main :-
 
 do(load)  :-  load_kb,!.
 do(solve) :-  solve, !.
+do(assert) :-  assert, !.
 do(goal) :-  load_goal, !.
 do(help)  :-  help, !.
 do(list)  :-  list.
@@ -97,13 +98,25 @@ greet :-
 
 % help/0 - Lists all the valid commands that can be called on the interpreter loop
 help :-
-    write("Type help. load. goal. solve. list. or quit. at the prompt. Notice the period after each command!").
+    write("Type help. load. goal. assert. solve. list. or quit. at the prompt. Notice the period after each command!").
 
 load_goal :-
 	write("Enter the new goal followed by a period: "),
 	read_sentence(GoalText),
 	process(['goal:'|GoalText]),
 	bug(GoalText).
+
+% assert/0 - takes a rule that the user inputs into the interpreter and asserts it
+% example: 
+% > assert.
+% > Enter a new rule: if it eats chicken then it is a human.
+% > Understood: if it eats chicken then it is a human 
+
+assert :-
+  write("Enter a new rule: "),
+  read_sentence(RuleText),
+  process(['rule:'|RuleText]),
+  bug(RuleText).
 
 % load_kb/0 - Prompts the user for the knowledge base filename, if file is found, the rules are loaded from it
 load_kb :-
@@ -427,6 +440,7 @@ process(['rule:'|L]) :-     % Found a rule.
         rule(R,L,[]),       % Parse the rule.
         %bug(R),             % Print it for debugging.
         assert_rules(R), !. % Assert it (them, potentially) in the DB.
+
 %%%%%%%%%%%%%%%%%% Addon for dynamic goal %%%%%%%%%%%%%%%%%%%
 % In here the process asks a question and assess the answer	
 process(['goal:'|GoalText]) :-
