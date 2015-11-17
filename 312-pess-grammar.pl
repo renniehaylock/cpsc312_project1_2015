@@ -359,7 +359,7 @@ np(NPTerms,A) -->
         adjp_star(APTerms,A), 
         n(NTerms,A),
         { build_prepend_attrs(NTerms, APTerms, NPTerms) }.
-
+		
 % Zero or more adjectives (chained together without and before a noun).
 % Adjective phrases in a chain become a list of adjective phrases.
 adjp_star(APTerms,A) -->
@@ -385,8 +385,10 @@ det_opt --> [an].
 % Nouns become is_a attributes.
 % What is now considered a generic noun that could mean
 % any of the nouns listed
+
 n([],_) --> [it].
 n([attr(is_a,A,[])],A) --> [what], { n(A) }.
+n([attr(is_a,X,[])],yes) --> [X], { n(X) }.
 n([attr(is_a,X,[])],_) --> [X], { n(X) }.
 n([attr(is_a,Name,[])],_) --> lit(n, Name). % Any literal tagged as 'n'
 n([attr(is_a,X,[])],_) --> [X], { stem_word(X) }. % Cannot find word, stem and add

@@ -93,7 +93,7 @@ help :-
     write("Type help. load. goal. solve. list. or quit. at the prompt. Notice the period after each command!").
 
 load_goal :-
-	write("Enter the new goal in single quotes, followed by a period: "),
+	write("Enter the new goal followed by a period: "),
 	read_sentence(GoalText),
 	process(['goal:'|GoalText]),
 	bug(GoalText).
