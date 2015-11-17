@@ -49,6 +49,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Interpreter loop                                             %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% main/0 - initiates the interpreter look
+% after main is called the prompt will be looking for valid inputs
+% from the user.
 
 main :- 
     greet,
@@ -60,6 +63,7 @@ main :-
 
 %% Identify Commands here
 %%%%%%%%%%%%%%%%%%%%%%%%%%
+% These are the commands that the interpreter loop can run
 
 do(load)  :-  load_kb,!.
 do(solve) :-  solve, !.
@@ -72,6 +76,8 @@ do(quit).
 %% Map commands to actions
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% list/0 - Lists all the rules that have been loaded to this point
+% Returns an error message if no rules are found
 
 list :- 
   current_predicate(rule/2), 
@@ -89,6 +95,7 @@ greet :-
     write("This is the CPSC312 Prolog Expert System Shell. \nBased on Amzi's 'native Prolog shell'.\n"),
     help.
 
+% help/0 - Lists all the valid commands that can be called on the interpreter loop
 help :-
     write("Type help. load. goal. solve. list. or quit. at the prompt. Notice the period after each command!").
 
@@ -97,17 +104,23 @@ load_goal :-
 	read_sentence(GoalText),
 	process(['goal:'|GoalText]),
 	bug(GoalText).
-	
+
+% load_kb/0 - Prompts the user for the knowledge base filename, if file is found, the rules are loaded from it
 load_kb :-
     write("Enter filename in single quotes, followed by a period (e.g'bird.kb'.): "), 
     read(F), 
     load_rules(F).
+
+% If none of the previous commands got activated, then do/1 will unify here, and it means
+% the user inputted an invalid command
 
 do(X) :-
     write(X), 
     write(' is not a legal command.'), nl, 
     fail.
 
+% Used for listing all the rules available, takes a rule X and 
+% glosses it into a readable interpretation
 get_rules(X) :- 
         write('Rule: '), 
         plain_gloss(X, Text), 

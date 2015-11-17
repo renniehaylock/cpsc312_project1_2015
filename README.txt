@@ -12,6 +12,18 @@ The fourth and amusing one is a pizza, only if its shape is round and it feeds f
 
 It was difficult and frustrating to write rules when you aren't sure about the facts of the domain yourself. You would rarely mentally ask yourself what makes this this, which can become troublesome, however what was simple was understanding the syntax of the rules because there was a file for reference. For words that were not know a "n:....." was used to explicitly state that that was a noun or a verb or an adverb or an adjective. The minimum amount of rules needed was 3 and was put in a knowledge base file called vehicles.kb. This satisfies the requirement for question 1.
 
+QUESTION 2
+
+The code for the interpreter loop came largely by modeling after Amzi's interpreter shell discussion. It can be found under the "Interpreter loop" heading in the '312-pess.pl' file. The loop is initiated with the main/0 predicate, which prompts the system to begin listening for incoming commands. After the user types in a command, the system checks to see if it is valid by trying to unify with do(X), X being the command the user inputs. the do(X) predicates just act as a bridge/connector between the interpreter and the predicates that actually do work. So, do(solve) for example, only calls the existing solve/0 predicate. The commands at the prompt must end with a period for them to work.
+
+The usage for each of the commands is as follows:
+
+load. 	-> Prompts user to enter the name of the knowledge base file, and if found proceeds to load the rules found in the file
+help. 	-> Prints a short help message on the prompt.
+solve. 	-> Asks a list of questions to solve the top level goal of the program
+list.		-> Lists all rules currently asserted by the program
+quit.		-> Ends the interpreter loop
+
 QUESTION 3
 
 The main reasoning behind the implementation is that a question is a sentence which requires an answer.
@@ -80,7 +92,6 @@ load_goal :-
 	process(['goal:'|GoalText]),
 	bug(GoalText).
 	
-
 QUESTION 6
 The purpose of question 6 was to add words to our local dictionary from WordNet that we did not have dynamically. The use of pronto_morph's morph_atoms_bag predicate returned a list of all the stems of the given word, such as [harder,harde,-er,hard,-er]. We would then check every stem against our local db with stem_word(X).
 
