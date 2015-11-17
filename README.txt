@@ -1,3 +1,18 @@
+TEAM MEMBER:
+Andrew Li
+11948130
+h2e9
+
+Andre Furlan
+45222130
+o3d9
+
+
+Rennie Haylock
+57117137
+p1a9
+
+
 QUESTION 1
 
 My domain is about vehicles and there is one funny one in there about food, but the main subject are vehicles.
