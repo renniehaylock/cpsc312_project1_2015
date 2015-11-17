@@ -69,6 +69,8 @@ vdoes([attr(does,A,[])],A) --> [what], { v(A) }.
 Question with no unbound variables receives a yes answer.
 n([attr(is_a,X,[])],yes) --> [X], { n(X) }.
 
+There are still some doubts on what to expect from the answers. In a goal as: what does it has? Will the program query for a bird and return all the noun adjectives related to that bird? Due to this problem and how hard it would be to implement this, we decided to just parse correctly the goal and create the correct rules, and leave the program to decide what to do with it.
+
 QUESTION 4
 The implementation was trivial. Just add a rule in 312-pess load_goal that will ask for an user input, read the sentence given and call process(['goal:'|Text]).
 
@@ -77,6 +79,8 @@ load_goal :-
 	read_sentence(GoalText),
 	process(['goal:'|GoalText]),
 	bug(GoalText).
+	
+
 QUESTION 6
 The purpose of question 6 was to add words to our local dictionary from WordNet that we did not have dynamically. The use of pronto_morph's morph_atoms_bag predicate returned a list of all the stems of the given word, such as [harder,harde,-er,hard,-er]. We would then check every stem against our local db with stem_word(X).
 
@@ -85,65 +89,6 @@ The predicate stem_word(X) was created to take any noun and check through our lo
 There are some limits we put on the types of words that we add. Firstly the check_not_in_local_dictionary predicate checks to see if it is not only a noun, but a verb, an adjective, and an adverb. This was needed because the s/1 predicate from WordNet returns more than just one result, which could mean duplication. A word can have multiple meanings and can be both a verb and a noun. But, due to the slowness of checking every single word that was unknown and adding every single possible version of that word from WordNet, it was decided to only add the first one returned. This sped up the load_rules process tremendously.
 
 The predicate was then added to where the attributes were created. Again, it was only added in the noun attribute by design as we only wanted to add nouns that we did not know, again this was due to the performance of the program. It can be extended to include adverbs, adjectives and verbs. We have tried it but it is just very slow. 
-process(['goal:'|GoalText]) :-
-		question(Attrs,Answer,GoalText,[]),
-		write(rule(top_goal(Answer), Attrs)),nl,
-		assertz(rule(top_goal(Answer), Attrs)).
-		
-The default rule moved to load_rules(F).
-	
-312-pess-grammar
-question/4 is defined in the grammar a sentence that has an answer.
-question(Attrs,A) --> sentence(Attrs,A).
-
-For this to work, an extra parameter was added to each rule deduced from sentence/4.
-
-For especific question syntax, 4 cases were created.
-
-Question starting with does/do
-sentence(Attrs,A) -->
-		does, sentence(Attrs,A).
-
-Questions starting with is it.
-sentence(Attrs,A,[is,it|Rest],[]) :- 
-		sentence(Attrs,A,[it,is|Rest],[]).
-
-Questions starting with has it
-sentence(Attrs,A,[has,it|Rest],[]) :-
-		sentence(Attrs,A,[it,has|Rest],[]).
-
-Questions starting with what + does
-sentence(Attrs,A,[what|Rest],[]) :-
-		append(Rest,[what],NewTerm),
-		sentence(Attrs,A,NewTerm,[]).
-
-For the bonus,
-% interpretation of 'what the heack is THAT'
-sentence([attr(is_a,A,[])],A) -->
-		[what],
-		[the,heck],
-		vis,
-		['THAT'].
-		
-In order for the what to work without hardcoding all possible places it could be placed, new nouns, adverbs, adjectives, and vdoes were added. In this way it is a what small bird, is it a very what bird, and is it a very small what work.
-
-n([attr(is_a,A,[])],A) --> [what], { n(A) }.
-adv([attr(is_how,A,[])],A) --> [what], { adv(A) }.
-adj([attr(is_like,A,[])],A) --> [what], { adj(A) }.
-vdoes([attr(does,A,[])],A) --> [what], { v(A) }.
-
-Question with no unbound variables receives a yes answer.
-n([attr(is_a,X,[])],yes) --> [X], { n(X) }.
-
-QUESTION 4
-The implementation was trivial. Just add a rule in 312-pess load_goal that will ask for an user input, read the sentence given and call process(['goal:'|Text]).
-
-load_goal :-
-	write("Enter the new goal followed by a period: "),
-	read_sentence(GoalText),
-	process(['goal:'|GoalText]),
-	bug(GoalText).
-
 
 This still satisfies the scope of dynamically adding words to our dictionary.
 Phrases such as "It is an insect", "It is an amusing hyena", "It is a fat penguin" are all understood by the program. To check you can try_parse/0 on any of the sentences above and then run perhaps the predicate check_not_in_local_dictionary(penguin, n) and it should return false, thats if your ran "It is a fat penguin first" or else that would would not be in our dictionary. The n atom stands for the type of the word in this case n is noun, a is adjective. 
